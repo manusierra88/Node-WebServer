@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sing-In</title>
+</head>
+
+<body>
+
+    <h1>Google Sing-In</h1>
+    <hr>
+
+    <div id="g_id_onload" data-client_id="669624643401-1vaqnmt35oh0vdg0g2jveud0ti0vtl90.apps.googleusercontent.com"
+        data-auto_prompt="false" data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
+        data-shape="rectangular" data-logo_alignment="left">
+    </div>
+
+    <button id="button-signout">
+        Signout
+    </button>
+
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        function handleCredentialResponse(response) {
+            //GOOGLE TOKEN -- ID_TOKEN
+
+            //console.log('id_token', response.credential);
+            const body = {id_token: response.credential};
+            fetch('http://localhost:8080/api/auth/google', {
+                method : 'POST',//hay que definir que sea metodo post, sino se especifica siempre es un GET
+                headers :{
+                    'Content-Type':'application/json'//tipo de data que vamos a enviar 
+                },
+                body : JSON.stringify(body)//hay que convertirlo en string al contenido del body
+            }
+                    )
+                .then(resp => resp.json())//tomamos la respuesta y la convertimos en json
+                .then(resp => {
+                    console.log(resp);
+                    localStorage.setItem('email', resp.usuario.correo)
+                })
+                .catch(console.warn)
+
+        }
+
+        const button = document.getElementById('button-signout');
+        button.onclick = ()=>{
+            console.log(google.accounts.id);
+            google.accounts.id.disableAutoSelect();
+
+            google.accounts.id.revoke(localStorage.getItem('email'), done => {
+                localStorage.clear();
+                location.reload();
+            })
+        }
+    </script>
+</body>
+
+</html>
